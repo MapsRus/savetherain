@@ -305,19 +305,19 @@ function findAddress(){
  jQuery(".modal-getAddress").show('slow');
 }
 
-function LogoControl(controlDiv, map){
+//function LogoControl(controlDiv, map){
 	
-  var logoUI2 = document.createElement('DIV');
+//  var logoUI2 = document.createElement('DIV');
 
-  controlDiv.appendChild(logoUI2);
+ // controlDiv.appendChild(logoUI2);
   
-	var controlText = document.createElement('DIV');
-  controlText.style.backgroundImage = "url('images/googlelogo.png')"; 
-  controlText.style.width = '65px';
-  controlText.style.height = '36px';
-  logoUI2.appendChild(controlText);
+	//var controlText = document.createElement('DIV');
+  //controlText.style.backgroundImage = "url('images/googlelogo.png')"; 
+  //controlText.style.width = '65px';
+  //controlText.style.height = '36px';
+  //	logoUI2.appendChild(controlText); 
 	
-}
+//}
 
 function HomeControl(controlDiv, map) {
   
@@ -680,9 +680,9 @@ function QuickZoom(location){
 		 }
 		
 		 switch (location) {
-         case 'Redlands': 		map.setCenter(new google.maps.LatLng(34.056494, -117.197274)); map.setZoom(22); break;
-         case 'Amarillo':   map.setCenter(new google.maps.LatLng(35.195684, -101.840654)); map.setZoom(19); break;
-         case 'Knoxville': 		map.setCenter(new google.maps.LatLng(35.964521, -83.922535));   map.setZoom(18); break;
+         case 'Googleplex': 		map.setCenter(new google.maps.LatLng(37.42252166680391, -122.08555632979699)); map.setZoom(22); break;
+         case 'Africa':   map.setCenter(new google.maps.LatLng(14.355961,3.320918)); map.setZoom(22); break;
+         case 'Hyderabad': 		map.setCenter(new google.maps.LatLng(17.458426325716058, 78.37244223269396));   map.setZoom(18); break;
          default: break;
          }
  jQuery("#digitizeTime").show('slow');
@@ -973,9 +973,9 @@ function clearOverlays() {
 					<input id="address" style="margin-bottom:8px;" type="text" style="" class="rounded" ></input>
 					<a class="button"  style="margin-bottom:8px;" id="clickAddress" href="#" onclick="showAddress()">GO</a><br>
 					<span style="font-size:14px;">Suggestions? 
-						<a href="javascript:QuickZoom('Redlands')">Redlands, CA</a> |
-						<a href="javascript:QuickZoom('Amarillo')">Amarillo, TX</a> |
-						<a href="javascript:QuickZoom('Knoxville')">Knoxville, TN</a> 
+						<a href="javascript:QuickZoom('Googleplex')">Googleplex	</a> |
+						<a href="javascript:QuickZoom('Africa')">Africa</a> |
+						<a href="javascript:QuickZoom('Hyderabad')">Hyderabad, India</a> 
 
 				</div>
 			
@@ -1172,10 +1172,10 @@ window.location = "http://www.google.de/chrome/?hl=en";
     homeControlDiv.index = 1;
     map.controls[google.maps.ControlPosition.TOP_LEFT].push(homeControlDiv);
     
-      var logoControlDiv = document.createElement('DIV');
-	var logoControl = new LogoControl(logoControlDiv, map);
-    logoControlDiv.index = 1;
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(logoControlDiv);
+//      var logoControlDiv = document.createElement('DIV');
+//var logoControl = new LogoControl(logoControlDiv, map);
+//    logoControlDiv.index = 1;
+//    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(logoControlDiv);
     
 	google.maps.event.addListener(map, 'zoom_changed', function() {
 
