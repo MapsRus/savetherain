@@ -1,0 +1,1163 @@
+	<!DOCTYPE html>
+<html>
+<head>
+
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+<meta content="yes" name="apple-mobile-web-app-capable" />
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+
+<title>Combat Drought - Calculate Your Rainwater Harvesting Potential</title>
+
+<link href="css/controls.css" rel="stylesheet" type="text/css" />
+<link href="css/style.mobile.css" rel="stylesheet" type="text/css">
+<link href="css/bos.css" rel="stylesheet" type="text/css" >
+<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600' rel='stylesheet' type='text/css'>
+  
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyC1FwTuerZcfQ0P5mLKMuTnVN7QJGvNcco&sensor=true&libraries=geometry&libraries=adsense&v=3.10"></script> 							    
+<script type="text/javascript" src="js/jwaterdroplets.js"></script>  
+<script type='text/javascript' src='js/wax.g.min.js' ></script>
+<script type="text/javascript" src="js/bos.js"></script>
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript" src="js/arcgislink.js"></script>
+<script type="text/javascript" src="js/jquery-1.7.1.min.js" ></script>
+<script type='text/javascript' src='js/jquery.cookie.min.js' ></script>
+
+
+
+<script type="text/javascript">
+  
+google.load("visualization", "1");
+      google.setOnLoadCallback(drawChart);
+      var chart;
+      function drawChart() {
+	  
+	  }
+	  
+var centeroftheWorld = new google.maps.LatLng(36.6, -5.4);
+
+
+var map;
+var rainlayerOn, futureRainlayerOn, droughtLayerOn, upcomingRainLayerOn;	
+var geocoder;	
+var poly;
+var adUnit;
+
+
+var markers = [];
+var path = new google.maps.MVCArray;
+
+var rainVisible=false;
+
+
+
+
+(function($) {
+    
+    $.Loadingdotdotdot = function(el, options) {
+        
+        var base = this;
+        
+        base.$el = $(el);
+                
+        base.$el.data("Loadingdotdotdot", base);
+        
+        base.dotItUp = function($element, maxDots) {
+            if ($element.text().length == maxDots) {
+                $element.text("");
+            } else {
+                $element.append(".");
+            }
+        };
+        
+        base.stopInterval = function() {    
+            clearInterval(base.theInterval);
+        };
+        
+        base.init = function() {
+        
+            if ( typeof( speed ) === "undefined" || speed === null ) speed = 300;
+            if ( typeof( maxDots ) === "undefined" || maxDots === null ) maxDots = 3;
+            
+            base.speed = speed;
+            base.maxDots = maxDots;
+                                    
+            base.options = $.extend({},$.Loadingdotdotdot.defaultOptions, options);
+                        
+            base.$el.html("<span>" + base.options.word + "<em></em></span>");
+            
+            base.$dots = base.$el.find("em");
+            base.$loadingText = base.$el.find("span");
+            
+            base.$el.css("position", "relative");
+            base.$loadingText.css({
+                "position": "absolute",
+                "top": (base.$el.outerHeight() / 2) - (base.$loadingText.outerHeight() / 2),
+                "left": (base.$el.width() / 2) - (base.$loadingText.width() / 2)
+            });
+                        
+            base.theInterval = setInterval(base.dotItUp, base.options.speed, base.$dots, base.options.maxDots);
+            
+        };
+        
+        base.init();
+    
+    };
+    
+    $.Loadingdotdotdot.defaultOptions = {
+        speed: 300,
+        maxDots: 3,
+        word: "Loading"
+    };
+    
+    $.fn.Loadingdotdotdot = function(options) {
+        
+        if (typeof(options) == "string") {
+            var safeGuard = $(this).data('Loadingdotdotdot');
+			if (safeGuard) {
+				safeGuard.stopInterval();
+			}
+        } else { 
+            return this.each(function(){
+                (new $.Loadingdotdotdot(this, options));
+            });
+        } 
+        
+    };
+    
+})(jQuery);  
+
+jQuery(document).ready(function () {
+	initRain();
+	showRain(rainVisible);
+	
+
+	 
+	jQuery.noConflict();
+	
+	//Click enter automatically
+	jQuery("#address").keyup(function(event){
+		if(event.keyCode == 13){
+			jQuery("#clickAddress").click();
+		}
+	});
+	
+	// Position modal box in the center of the page
+	jQuery.fn.center = function () {
+		this.css("position","absolute");
+		this.css("top", ( jQuery(window).height() - this.height() ) / 2+jQuery(window).scrollTop() + "px");
+		this.css("left", ( jQuery(window).width() - this.width() ) / 2+jQuery(window).scrollLeft() + "px");
+	
+	return this;
+	  }
+	  
+	jQuery.fn.centerButton = function () {
+		this.css("position","absolute");
+		this.css("top", ( jQuery(window).height() - this.height() ) / 2+jQuery(window).scrollTop() + 300 + "px");
+		this.css("left", ( jQuery(window).width() - this.width() ) / 2+jQuery(window).scrollLeft() + "px");
+		
+	return this;
+	  }  
+	
+	
+	jQuery(".modal-profile").center();
+	jQuery(".botright").centerButton();
+	
+	// Set height of light out div	
+	jQuery('.modal-lightsout').css("height", jQuery(document).height());	
+
+	// Fade in modal box once link is clicked
+	jQuery('.modal-close-profile').click(function() {
+	jQuery('.modal-profile').fadeOut(500);
+	jQuery('.modal-lightsout').fadeOut(500);
+	stopRain();
+	
+	});
+	
+	jQuery('.modal-showResults-close-profile').click(function() {
+	jQuery('.modal-showResults').fadeOut(500);
+	jQuery('.modal-lightsout').fadeOut(500);
+	stopRain();
+	startOver();
+	
+	});
+	
+	 jQuery(".modal-profile").click(function () {
+	
+      	jQuery('.modal-profile').fadeOut(500);
+	jQuery('.modal-lightsout').fadeOut(500);
+	 jQuery(".modal-getAddress").show('slow');
+    });
+	
+	jQuery("#showMeHow").click(function () {
+		jQuery(".modal-showInstructions").center();    	
+		jQuery('.modal-showInstructions').fadeIn(1000);
+		jQuery('.modal-lightsout').fadeTo(1000, 0.6);
+		jQuery("#digitizeTime").fadeTo(1000, 0.3);
+		jQuery(".modal-getAddress").fadeTo(1000, 0.3);
+		
+    });
+	
+	jQuery("#modal-showInstructions-close-profile").click(function () {
+		jQuery('.modal-showInstructions').fadeOut(500);
+		jQuery('.modal-lightsout').fadeOut(500);
+		jQuery("#digitizeTime").fadeTo(1000,1);
+		jQuery(".modal-getAddress").fadeTo(1000,1);
+    });
+	
+});
+		
+
+		
+function openBrowse(){
+	jQuery(".modal-profile").center();
+	jQuery('.modal-lightsout').fadeOut(500);
+
+//add some code here
+
+	jQuery('.modal-profile').fadeIn(1000);
+	jQuery('.modal-lightsout').fadeTo(1000, 0.6);
+			
+}
+
+function closeMe(){
+	if(jQuery('.modal-getAddress').is(":visible")){jQuery(".modal-getAddress").hide(1000);}
+	if(jQuery('#digitizeTime').is(":visible")){jQuery("#digitizeTime").hide(1000);}
+	
+			
+}
+
+//Links
+//http://www.autopiaforums.com/forums/washing-drying-claying/40190-how-many-gallons.html
+
+
+function showResults(corn, soyabeans,rice,grain, totalRainfall){
+	if(jQuery('.modal-getAddress').is(":visible")){jQuery(".modal-getAddress").hide(1000);}
+	if(jQuery('#digitizeTime').is(":visible")){jQuery("#digitizeTime").hide(1000);}
+	jQuery(".modal-showResults").center();
+	jQuery('.modal-showResults').fadeIn(1000);
+	jQuery('.modal-lightsout').fadeTo(1000, 0.6);
+	
+	console.log (corn + " " + soyabeans + " " + rice + " " + grain + " " + totalRainfall);
+	
+	cornlabel=corn + " times";
+	soyabeanslabel=soyabeans + " times";
+	ricelabel=rice + " washes";
+	grainlabel=grain +" times";
+	//corn = corn + (corn * 0.15);
+	corn = corn/4;
+	//soyabeans = soyabeans + (soyabeans * 2);
+	soyabeans = soyabeans/2;
+	//rice = rice +  (rice * 2);
+	rice = rice/2.5;
+	//grain = grain + (grain * 2);
+	grain=grain/2.1;
+	//console.log ("2:" + corn + " " + soyabeans + " " + rice + " " + grain + " " + totalRainfall);
+	
+	var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Label');
+        data.addColumn('number', 'Value');
+        data.addRows(1);
+        data.setCell(0, 0, 'Flushes');
+        data.setCell(0, 1, corn, cornlabel);	
+        var chartDiv = document.getElementById('chartdiv');
+        var options = {type:'corn',max: '2500', width:'800'};
+        chart = new BarsOfStuff(chartDiv);
+        chart.draw(data, options);
+	
+        var data2 = new google.visualization.DataTable();
+        data2.addColumn('string', 'Label');
+        data2.addColumn('number', 'Value');
+        data2.addRows(1);
+        data2.setCell(0, 0, 'Sprinklings ');
+        data2.setCell(0, 1, soyabeans, soyabeanslabel);
+        var chartDiv = document.getElementById('chartdiv2');
+        var options = {type:'beans', max:'2500',width:'800'};
+        chart = new BarsOfStuff(chartDiv);
+        chart.draw(data2, options);
+        
+        var data3 = new google.visualization.DataTable();
+        data3.addColumn('string', 'Label');
+        data3.addColumn('number', 'Value');
+        data3.addRows(1);
+        data3.setCell(0, 0, 'Car Washes');
+        data3.setCell(0, 1, rice, ricelabel);
+        var chartDiv = document.getElementById('chartdiv3');
+        var options = {type:'rice', max:'2500',width:'800'};
+        chart = new BarsOfStuff(chartDiv);
+        chart.draw(data3, options);
+
+        var data4 = new google.visualization.DataTable();
+        data4.addColumn('string', 'Label');
+        data4.addColumn('number', 'Value');
+        data4.addRows(1);
+        data4.setCell(0, 0, 'Waterings ');
+        data4.setCell(0, 1, grain, grainlabel);
+        var chartDiv = document.getElementById('chartdiv4');
+        var options = {type:'wheat', max:'2500',width:'800'};
+        chart = new BarsOfStuff(chartDiv);
+        chart.draw(data4, options);
+		
+		jQuery('#resultsSummary').html("Mean annual rainfall: " + rainfall2*1000 + "mm. Total savings of <b>" + totalRainfall + "</b> litres of water in a year.  Note: lawn area = 750 sq ft");
+}
+		
+function findAddress(){
+		
+ jQuery(".modal-getAddress").show('slow');
+}
+
+function LogoControl(controlDiv, map){
+	
+  var logoUI2 = document.createElement('DIV');
+
+  controlDiv.appendChild(logoUI2);
+  
+	var controlText = document.createElement('DIV');
+  controlText.style.backgroundImage = "url('images/esrilogo.png')"; 
+  controlText.style.width = '65px';
+  controlText.style.height = '36px';
+  logoUI2.appendChild(controlText);
+	
+}
+
+function HomeControl(controlDiv, map) {
+  
+  var controlUI8 = document.createElement('DIV');
+  controlUI8.style.cursor = 'pointer';
+  controlUI8.title = 'Click here to calculate how much water you could save';
+  controlDiv.appendChild(controlUI8);
+
+	controlDiv.id="tools";
+  // Set CSS for the control border
+  
+  var controlUI = document.createElement('DIV');
+  controlUI.id="demo-tip-skyblue";
+  controlUI.className="demo-tip-skyblue";
+  controlUI.style.cursor = 'pointer';
+  controlUI.title = 'Click to zoom in';
+  controlDiv.appendChild(controlUI);
+  
+  var controlUI2 = document.createElement('DIV');
+  controlUI2.style.cursor = 'pointer';
+  controlUI2.title = 'Click to zoom to the world';
+  controlDiv.appendChild(controlUI2);
+  
+  var controlUI3 = document.createElement('DIV');
+  controlUI3.style.cursor = 'pointer';
+  controlUI3.title = 'Click to zoom out';
+  controlDiv.appendChild(controlUI3);
+  
+  var controlUI4 = document.createElement('DIV');
+  controlUI4.style.cursor = 'pointer';
+  controlUI4.title = 'Show how much it rains in a year';
+  controlDiv.appendChild(controlUI4);
+  
+  var controlUI5 = document.createElement('DIV');
+  controlUI5.style.cursor = 'pointer';
+  controlUI5.title = 'Show how much annual precipitation will change in the future';
+  controlDiv.appendChild(controlUI5);
+  
+  var controlUI6 = document.createElement('DIV');
+  controlUI6.style.cursor = 'pointer';
+  controlUI6.title = 'Show the the weekly map of drought conditions care of the US Drought Monitor';
+  controlDiv.appendChild(controlUI6);
+  
+  var controlUI7 = document.createElement('DIV');
+  controlUI7.style.cursor = 'pointer';
+  controlUI7.title = 'Show how much it is going to rain in the coming day';
+  controlDiv.appendChild(controlUI7);
+
+
+  
+  
+  // Set CSS for the control interior
+  var controlText = document.createElement('DIV');
+  controlText.style.backgroundImage = "url('images/zoom-in-drawn-blue.png')"; 
+  controlText.style.width = '64px';
+  controlText.style.height = '64px';
+  controlText.style.marginLeft = "-1px";
+  controlText.style.marginTop = "5px";
+  controlUI.appendChild(controlText);
+  
+ var controlText2 = document.createElement('DIV');
+  controlText2.style.backgroundImage = "url('images/world-drawn-blue.png')"; 
+  controlText2.style.width = '64px';
+  controlText2.style.height = '64px';
+  controlUI2.appendChild(controlText2);
+
+ var controlText3 = document.createElement('DIV');
+  controlText3.style.backgroundImage = "url('images/zoom-out-drawn-blue.png')"; 
+  controlText3.style.width = '64px';
+  controlText3.style.height = '64px';
+  controlText3.style.marginTop = "5px";
+  controlText3.style.marginLeft = "-1px";
+  controlUI3.appendChild(controlText3);
+  
+ var controlText4 = document.createElement('DIV');
+  controlText4.style.backgroundImage = "url('images/raindrop.png')"; 
+  controlText4.style.width = '64px';
+  controlText4.style.height = '64px';
+  controlText4.style.marginTop = "5px";
+  controlText4.style.marginLeft = "0px";
+  controlUI4.appendChild(controlText4);
+  
+  
+ var controlText5 = document.createElement('DIV');
+  controlText5.style.backgroundImage = "url('images/raindropfuture.png')"; 
+  controlText5.style.width = '64px';
+  controlText5.style.height = '64px';
+  controlText5.style.marginTop = "5px";
+  controlText5.style.marginLeft = "0px";
+  controlUI5.appendChild(controlText5);
+  
+ var controlText6 = document.createElement('DIV');
+  controlText6.style.backgroundImage = "url('images/raindropagriculture.png')"; 
+  controlText6.style.width = '64px';
+  controlText6.style.height = '64px';
+  controlText6.style.marginTop = "5px";
+  controlText6.style.marginLeft = "0px";
+  controlUI6.appendChild(controlText6);
+ 
+ var controlText7 = document.createElement('DIV');
+  controlText7.style.backgroundImage = "url('images/vote2.png')"; 
+  controlText7.style.backgroundRepeat = "no-repeat";
+  controlText7.style.width = '64px';
+  controlText7.style.height = '64px';
+  controlText7.style.marginTop = "5px";
+  controlText7.style.marginLeft = "2px";
+  controlUI7.appendChild(controlText7);
+  
+ var controlText8 = document.createElement('DIV');
+  controlText8.style.backgroundImage = "url('images/start.png')"; 
+  controlText8.style.backgroundRepeat = "no-repeat";
+  controlText8.style.width = '64px';
+  controlText8.style.height = '64px';
+  controlText8.style.marginTop = "5px";
+  controlText8.style.marginLeft = "2px";
+  controlUI8.appendChild(controlText8);  
+  
+  
+  // Setup the click event listeners
+  google.maps.event.addDomListener(controlUI, 'click', function() {
+   var currentZoomLevel = map.getZoom();
+   
+   if(currentZoomLevel != 23){
+     map.setZoom(currentZoomLevel + 1);
+    }
+  });
+
+  google.maps.event.addDomListener(controlUI2, 'click', function() {
+  map.setMapTypeId('arcgis');
+  map.setCenter(centeroftheWorld)
+  map.setZoom(3);
+  });
+
+  google.maps.event.addDomListener(controlUI3, 'click', function() {
+    var currentZoomLevel = map.getZoom();
+    if(currentZoomLevel != 0){
+     map.setZoom(currentZoomLevel - 1);
+   }
+  });
+
+  google.maps.event.addDomListener(controlUI4, 'click', function() {
+  //meanRainfall layer  
+
+	if (rainlayerOn==false || rainlayerOn == undefined ){
+		if(jQuery('#precipChange').is(":visible")){jQuery("#precipChange").hide('slow');futureRainlayerOn=false;}
+		if(jQuery('#droughtLayer').is(":visible")){jQuery("#droughtLayer").hide('slow');droughtLayerOn=false}
+		if(jQuery('#upcomingRain').is(":visible")){jQuery("#upcomingRain").hide('slow');upcomingRainLayerOn=false;}
+		if(jQuery('.modal-getAddress').is(":visible")){jQuery(".modal-getAddress").hide(1000);}
+		if(jQuery('#digitizeTime').is(":visible")){jQuery("#digitizeTime").hide(1000);}
+		
+		map.overlayMapTypes.setAt(0, null);
+		map.overlayMapTypes.setAt(1, null);
+		map.overlayMapTypes.insertAt(0, rainfallMapType);
+		droughtLayer.setMap(null);
+		testLayer.setMap(null);
+		rainlayerOn=true;
+		  map.setCenter(centeroftheWorld);
+		  map.setZoom(3);
+		 jQuery("#meanRainfall").show('slow');
+		
+	}else{	
+		jQuery("#meanRainfall").hide('slow');
+		map.overlayMapTypes.setAt(0, null); 
+		rainlayerOn=false;
+	}
+  });
+  
+  google.maps.event.addDomListener(controlUI5, 'click', function() {
+  //precipChange layer
+  
+    if (futureRainlayerOn==false || futureRainlayerOn == undefined ){
+		if(jQuery('#droughtLayer').is(":visible")){jQuery("#droughtLayer").hide(1000);droughtLayerOn=false}
+		if(jQuery('.modal-getAddress').is(":visible")){jQuery(".modal-getAddress").hide(1000);}
+		if(jQuery('#digitizeTime').is(":visible")){jQuery("#digitizeTime").hide(1000);}
+		if(jQuery('#meanRainfall').is(":visible")){jQuery("#meanRainfall").hide(1000);rainlayerOn=false;}
+		if(jQuery('#upcomingRain').is(":visible")){jQuery("#upcomingRain").hide('slow');upcomingRainLayerOn=false;}
+		map.overlayMapTypes.setAt(0, null);
+		droughtLayer.setMap(null);
+	testLayer.setMap(null);
+		map.overlayMapTypes.insertAt(0, new wax.g.connector(tilejson));
+		map.overlayMapTypes.insertAt(1, new wax.g.connector(tilejsonCountries));
+		//wax.g.interaction(map, tilejson);
+		 
+		futureRainlayerOn=true;
+		 map.setCenter(centeroftheWorld);
+		 map.setZoom(3);
+		 jQuery("#precipChange").show(1000);
+		}else{	
+		jQuery("#precipChange").hide('slow');
+		map.overlayMapTypes.setAt(0, null);
+		map.overlayMapTypes.setAt(1, null);
+		
+		futureRainlayerOn=false;
+		
+	}
+  });
+
+  google.maps.event.addDomListener(controlUI6, 'click', function() {
+  //Drought Layer
+  console.log("Drought is visible?: " + droughtLayerOn);
+  	
+    if (droughtLayerOn==false || droughtLayerOn == undefined ){
+	
+		if(jQuery('.modal-getAddress').is(":visible")){jQuery(".modal-getAddress").hide(1000);}
+		if(jQuery('#digitizeTime').is(":visible")){jQuery("#digitizeTime").hide(1000);}
+		if(jQuery('#precipChange').is(":visible")){jQuery("#precipChange").hide('slow'); futureRainlayerOn=false;}
+		if(jQuery('#meanRainfall').is(":visible")){jQuery("#meanRainfall").hide('slow'); rainlayerOn=false;}
+		if(jQuery('#upcomingRain').is(":visible")){jQuery("#upcomingRain").hide('slow'); upcomingRainLayerOn=false;}
+		map.overlayMapTypes.setAt(0, null);
+		map.overlayMapTypes.setAt(1, null);
+		testLayer.setMap(null);
+  	droughtLayer.setMap(map);
+	
+    
+   	
+//		wax.g.interaction(map, tilejsonAgriculture);
+		droughtLayerOn=true;
+		 // map.setCenter(centeroftheWorld);
+		 
+		jQuery("#droughtLayer").show('slow');
+		
+		}else{	
+		jQuery("#droughtLayer").hide('slow');
+		//map.overlayMapTypes.setAt(0, null);
+		droughtLayer.setMap(null);
+
+		droughtLayerOn=false;
+		 
+	}
+	
+
+  });
+  
+
+	
+ google.maps.event.addDomListener(controlUI7, 'click', function() { 
+ //add future rain	
+ 
+ console.log("Upcoming Rain is visible?: " + upcomingRainLayerOn);
+    
+	if (upcomingRainLayerOn==false || upcomingRainLayerOn == undefined ){
+		if(jQuery('.modal-getAddress').is(":visible")){jQuery(".modal-getAddress").hide(1000);}
+		if(jQuery('#digitizeTime').is(":visible")){jQuery("#digitizeTime").hide(1000);}
+		if(jQuery('#precipChange').is(":visible")){jQuery("#precipChange").hide('slow'); futureRainlayerOn=false;}
+		if(jQuery('#meanRainfall').is(":visible")){jQuery("#meanRainfall").hide('slow'); rainlayerOn=false;}
+		if(jQuery('#droughtLayer').is(":visible")){jQuery("#droughtLayer").hide(1000);droughtLayerOn=false}
+		map.overlayMapTypes.setAt(0, null);
+		map.overlayMapTypes.setAt(1, null);
+    droughtLayer.setMap(null);
+		testLayer.setMap(map);
+
+ 	  //agsTypeFutureRainfall.setMap(map);
+
+
+		upcomingRainLayerOn=true;
+		centeroftheWorld = new google.maps.LatLng(37.0625,-95.677068);
+	  map.setCenter(centeroftheWorld);
+	  map.setZoom(4);
+
+		jQuery("#upcomingRain").show('slow');
+	}else{	
+		jQuery("#upcomingRain").hide('slow');
+		testLayer.setMap(null);
+		//agsTypeFutureRainfall.setMap(null);
+		upcomingRainLayerOn=false;
+		 
+	}
+ 
+   });
+  
+  
+  google.maps.event.addDomListener(controlUI8, 'click', function() {
+ //start all
+stopRain();
+ 		if(jQuery('#precipChange').is(":visible")){
+		jQuery("#precipChange").hide('slow');
+		futureRainlayerOn=false;}
+			if(jQuery('#upcomingRain').is(":visible")){jQuery("#upcomingRain").hide('slow'); upcomingRainLayerOn=false;}
+		if(jQuery('#meanRainfall').is(":visible")){jQuery("#meanRainfall").hide('slow'); rainlayerOn=false;}
+		if(jQuery('#droughtLayer').is(":visible")){jQuery("#droughtLayer").hide(1000); droughtLayerOn=false}
+ map.overlayMapTypes.setAt(0, null);
+ map.overlayMapTypes.setAt(1, null);
+    droughtLayer.setMap(null);
+		testLayer.setMap(null);
+ jQuery(".modal-getAddress").show('slow');
+ jQuery("#voteballoon").hide();
+  });
+  
+}
+
+		//var urlFutureRainfall = 'http://cosmos.surrey.ca/COSREST/rest/services/COPMap/MapServer';
+		//var urlFutureRainfall = 'http://gis.srh.noaa.gov/arcgis/rest/services/cpc_weather_hazards/MapServer' ;
+		//var urlFutureRainfall = 'http://gis.srh.noaa.gov/arcgis/rest/services/QPF/MapServer';
+	//	var urlFutureRainfall = 'http://svinetfc3.fs.fed.us/ArcGIS_NPSG/rest/services/NPSG/Quantitative_Precip_Forecast/MapServer';
+	//	var agsTypeFutureRainfall = new  gmaps.ags.MapOverlay(urlFutureRainfall,{name:'Future Rainfall', layerIds:[0,1,2,3,4,5,6,7],layerOption: 'show', opacity: 0.8});
+
+var droughtLayer = new google.maps.KmlLayer({
+    	url: 'http://droughtmonitor.unl.edu/data/kmz/usdm_current.kmz'
+  	 });
+  	 
+var testLayer = new google.maps.KmlLayer({
+    	url: 'http://www.wpc.ncep.noaa.gov/kml/qpf/QPF24hr_Day1_latest_netlink.kml'
+  	 });  	 
+  	 
+
+var rainfallMapType = new google.maps.ImageMapType({
+            getTileUrl: function(a, b) {
+                return "http://www.save-the-rain.com//Z" + b + "/" + a.y + "_" + a.x + ".png";
+            },
+            tileSize: new google.maps.Size(256, 256),
+			opacity:	0.8,
+            isPng: true,
+            alt: "Mean Annual Precipitation",
+            name: "Annual Rainfall"
+        });
+
+var tilejson = {
+	  tilejson: '2.0.0',
+      scheme: 'xyz',
+	  tiles:    ['http://a.tiles.mapbox.com/v2/worldbank-climate.wbc-precip-anom-a2/{z}/{x}/{y}.png']
+	  //tiles: ['http://a.tiles.mapbox.com/v2/worldbank-climate.wbc-temp-anom-a2/{z}/{x}/{y}.png'],
+      //grids: ['http://api.tiles.mapbox.com/v2/mapbox.world-bright,worldbank-climate.wbc-precip-anom-a2.json'],
+      //formatter: function(options, data) { return data.NAME }
+};
+
+
+
+
+
+
+var tilejsonAgriculture = {
+	  tilejson: '2.0.0',
+      scheme: 'xyz',
+	  tiles: ['http://wb1.live.mapbox.com/aHR0cHM6Ly9zMy5hbWF6b25hd3MuY29tL3diZGF0YS93b3JsZHBvbHloaV9uZXcuemlw/aHR0cDovL2RhdGEud29ybGRiYW5rLm9yZy9tYXBmaWxlL1NILkgyTy5TQUZFLlJVLlpTL2NvdW50cmllcw==/{z}/{x}/{y}.png']
+	  //tiles: ['http://a.tiles.mapbox.com/v2/worldbank-climate.wbc-temp-anom-a2/{z}/{x}/{y}.png'],
+      //grids: ['http://api.tiles.mapbox.com/v2/mapbox.world-bright,worldbank-climate.wbc-precip-anom-a2.json']
+      
+};
+
+var tilejsonCountries = {
+	  tilejson: '2.0.0',
+      scheme: 'xyz',
+	  tiles: ['http://a.tiles.mapbox.com/v2/worldbank-climate.wbc-borders/{z}/{x}/{y}.png']
+	  //tiles: ['http://a.tiles.mapbox.com/v2/worldbank-climate.wbc-temp-anom-a2/{z}/{x}/{y}.png'],
+      //grids: ['http://api.tiles.mapbox.com/v2/mapbox.world-bright,worldbank-climate.wbc-precip-anom-a2.json']
+      
+};
+
+//<iframe src="http://api.tiles.mapbox.com/v2/worldbank-climate.wbc-temp-anom-b1,worldbank-climate.wbc-borders,worldbank-climate.wbc-borders/mm/zoompan,tooltips,legend,bwdetect.html#2/21.96361833399474/-14.867187499999995" frameborder="0" width="650" height="500"></iframe>
+
+ 
+
+
+
+function QuickZoom(location){
+	
+	
+		 if (map.getMapTypeId() == "arcgis"){
+		 map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
+		 }
+		
+		 switch (location) {
+         case 'Redlands': 		map.setCenter(new google.maps.LatLng(34.056494, -117.197274)); map.setZoom(22); break;
+         case 'Amarillo':   map.setCenter(new google.maps.LatLng(35.195684, -101.840654)); map.setZoom(19); break;
+         case 'Knoxville': 		map.setCenter(new google.maps.LatLng(35.964521, -83.922535));   map.setZoom(18); break;
+         default: break;
+         }
+ jQuery("#digitizeTime").show('slow');
+}
+	
+
+	
+function showAddress() {
+    var address = document.getElementById("address").value;
+    geocoder.geocode( { 'address': address}, function(results, status) {
+      if (status == google.maps.GeocoderStatus.OK) {
+        map.setCenter(results[0].geometry.location);
+		map.setZoom(18);
+        var marker = new google.maps.Marker({
+            map: map, 
+            position: results[0].geometry.location
+			
+        });
+      } else {
+        alert("Sorry, couldn't find that address or place.  Here are the technical reasons why: " + status);
+      }
+    });
+  }
+
+
+ function leftClick(event) {
+ 
+ path.insertAt(path.length, event.latLng);
+var image="images/rainyicon.png";
+var shadowImage="images/rainyiconshadow.png";
+    var marker = new google.maps.Marker({
+      position: event.latLng,
+	  icon: image,	
+	  shadow: shadowImage,	
+      map: map,
+      draggable: true
+    });
+    markers.push(marker);
+    marker.setTitle("#" + path.length);
+
+    google.maps.event.addListener(marker, 'click', function() {
+      marker.setMap(null);
+      for (var i = 0, I = markers.length; i < I && markers[i] != marker; ++i);
+      markers.splice(i, 1);
+      path.removeAt(i);
+      }
+    );
+
+    google.maps.event.addListener(marker, 'dragend', function() {
+      for (var i = 0, I = markers.length; i < I && markers[i] != marker; ++i);
+      path.setAt(i, marker.getPosition());
+      }
+    );
+
+}  
+
+function startOver(){
+if(poly) poly.setMap(null); // polyline or polygon
+clearOverlays();
+
+	vertices = poly.getPath();
+ 
+    // Iterate over the vertices.
+    for (var i = vertices.length-1; i > -1; i--) {
+        vertices.removeAt(i);
+    }
+poly.setMap(map);
+
+}
+function finishedDigitizing(){
+	
+	
+
+	
+
+	
+	
+	var rainfall;
+	var path = poly.getPath();
+	var area = google.maps.geometry.spherical.computeArea(path.getArray());
+
+	roofAreaNew = area.toFixed(1);
+
+	if (area == 0){
+	alert("You did not draw an area.  Please try again by clicking a few times on the map.")
+	jQuery('#clickFinished').html('Finished');
+	
+	return;
+	
+	}
+	var url = 'http://cosmosbeta.surrey.ca/COSREST/rest/services/COPMap/MapServer';
+	
+		jQuery('#clickFinished').Loadingdotdotdot({
+    "speed": 100,
+    "maxDots": 10,
+    "word": "."
+});
+startRain();
+	latLng=map.getCenter();
+	
+	var urlNew = 'https://services7.arcgis.com/s787ID5Rs3GKchXK/ArcGIS/rest/services/MeanAnnualPrecipitation/FeatureServer';
+	var layer = new gmaps.ags.Layer(urlNew + '/0');
+	var params = {
+      returnGeometry: false,
+      where: "OBJECTID>=0",
+      outFields: ["FID_PROVIN"],
+      geometry : latLng
+	}
+
+ 
+    
+    layer.query(params, processResultSet);
+    
+	   function processResultSet(rs) {
+      var fs = rs.features;
+      for (var i = 0, c = fs.length; i < c; i++) {
+        rainfall2 = (fs[i].attributes["FID_PROVIN"]);
+        
+        rainfall2=rainfall2/1000;
+			totalRainfall=Math.round((roofAreaNew*rainfall2)*1000);
+				
+			
+			var corn = Math.round(totalRainfall/9) //toilet
+			var soyabeans =  Math.round((totalRainfall/2.35831)/750); //car
+			var rice = 	Math.round(totalRainfall/94.6353); //lawn
+			var grain = Math.round(totalRainfall/378.541); //trees
+			//console.log(corn,soyabeans,rice,grain);
+			jQuery('#clickFinished').html('Finished');
+			showResults(corn, soyabeans,rice,grain, totalRainfall,rainfall2);
+        
+      }
+    }
+	
+	
+	
+    
+	//svc = new gmaps.ags.MapService(url);
+		
+//	svc.identify({
+//
+//            geometry : latLng,
+//            tolerance : 3,
+//            layerIds : [ 0 ],
+//            layerOption : 'all',
+//            bounds : map.getBounds(),
+//            width: map.getDiv().offsetWidth,
+//            height: map.getDiv().offsetHeight,
+//           
+//          }, function (results, err){
+//
+//            if (err) {
+//
+//              alert(err.message + err.details.join('\n'));
+//
+//            } else {
+//
+//			addResultToMap(results, latLng);
+//			rainfall2=rainfall2/1000;
+//			totalRainfall=Math.round((roofAreaNew*rainfall2)*1000);
+//				
+//			
+//			var corn = Math.round(totalRainfall/9) //toilet
+//			var soyabeans =  Math.round((totalRainfall/2.35831)/1000); //car
+//			var rice = 	Math.round(totalRainfall/94.6353); //lawn
+//			var grain = Math.round(totalRainfall/378.541); //trees
+//			//console.log(corn,soyabeans,rice,grain);
+//			jQuery('#clickFinished').html('Finished');
+//			showResults(corn, soyabeans,rice,grain, totalRainfall,rainfall2);
+//			}			
+//          });
+
+
+}
+
+
+function addResultToMap(idresults, latlng) {
+
+          res = idresults.results;
+          layers = { "0": []};
+
+          for (var i = 0; i < res.length; i++) {
+            var result = res[i];
+            layers[result.layerId].push(result);
+          }
+
+          for (var layerId in layers) {
+            var results = layers[layerId];
+            var count = results.length;
+            var label = "", content = "";
+            switch(layerId) {
+				case "0":
+ 	
+                    if (count == 0){
+						alert ("You have selected an area not covered by the precipitation data.  An mean annual rainfall of 500mm will be used.");
+						rainfall2=500;
+						return rainfall2;
+						break;
+					}
+					for (var j = 0; j < count; j++) {
+						var attributes = results[j].feature.attributes;
+						rainfall2 = attributes["FID_PROVIN"];
+						return rainfall2;
+				
+					}
+               break;
+            }
+        }
+}
+function clearOverlays() {
+  if (markers) {
+    for (i in markers) {
+      markers[i].setMap(null);
+    }
+  markers.length = 0;
+  }
+}
+
+
+</script>
+
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-1747565-18']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</head>
+
+<body onload="init()">
+
+
+
+	<div class="modal-lightsout">
+	</div>
+	
+	<div class="modal-profile">
+		<a class="modal-close-profile" href="#"  onclick="findAddress();"title="Click here to get started">
+			<img alt="Close profile window" src="images/btnCloseBlue.png" />
+		</a>
+		<div id="topdiv">
+		
+		</div>
+		<div class="splashContent" >
+
+		
+		
+			<div id="steps">
+				<div id="step1" class="raindrop" style="float:left">
+					<div class="steptext">
+					 
+					</div>
+				</div>
+				<div id="step2" class="raindrop" style="float:left">
+					<div class="steptext">
+					
+					</div>
+				</div>
+				<div id="step3" class="raindrop" style="float:left">
+					<div class="steptext">
+					
+					</div>
+				</div>
+				<div id="step4" style="float:left">
+					<div class="">
+					
+					
+					</div>
+			    </div>
+			</div>
+	   </div>
+	</div>
+	<div class="modal-getAddress">
+	
+			<div id="steps">
+			
+			<span>1. Search for a rooftop anywhere in the world</span><br>
+			<span style="font-size:14px;">Type in an address below, or just use the map controls to zoom.</span>
+			
+				<div style="padding-top:8px;  line-height:90% ">
+					<input id="address" style="margin-bottom:8px;" type="text" style="" class="rounded" ></input>
+					<a class="button"  style="margin-bottom:8px;" id="clickAddress" href="#" onclick="showAddress()">GO</a><br>
+					<span style="font-size:14px;">Suggestions? 
+						<a href="javascript:QuickZoom('Redlands')">Redlands, CA</a> |
+						<a href="javascript:QuickZoom('Amarillo')">Amarillo, TX</a> |
+						<a href="javascript:QuickZoom('Knoxville')">Knoxville, TN</a> 
+
+				</div>
+			
+			</div>
+	</div>
+	<!-- google_ad_section_start -->
+	<div id="digitizeTime" class="modal-getAddress">
+	
+			<div id="steps">
+			
+			<span>2. Draw a box over the roof. <span style="font-size:12px;"> <a href="#" id="showMeHow">(show me how)</a></span></span><br>
+			<span style="font-size:14px;">Click on each corner of the roof. If you click on the wrong spot, you can drag the rainy cloud to the right spot, or, start all over again by clicking on the "Start Over" button. Click on the "Finished" button when finished. </span>
+			
+				<div style="padding-top:15px; margin-left: 2px;">
+					<a class="button" id="clickStartOver" href="#" onclick="startOver()">Start Over</a>
+					<a class="button" id="clickFinished" href="#" onclick="finishedDigitizing()">Finished</a>
+					<a class="button" id="clickClose" href="#" onclick="closeMe()">Close</a>
+					
+				</div>
+			
+			</div>
+	</div>
+		<div id="legend">
+			<div id="precipChange"><a href="http://climate4development.worldbank.org/open/#precipitation" title="This layer depicts the A2 scenario of the predicted change in total annual precipitation (in mm) by the end of the year 2100" target="_blank"><img src="images/precipitationchangelegendrounded.png"></a></div>
+			
+			<div id="droughtLayer"><a href="http://droughtmonitor.unl.edu/AboutUSDM/Background.aspx" title="The U.S. Drought Monitor, established in 1999, is a weekly map of drought conditions that is produced jointly by the National Oceanic and Atmospheric Administration, the U.S. Department of Agriculture, and the National Drought Mitigation Center (NDMC) at the University of Nebraska-Lincoln." target="_blank"><img src="images/droughtlegendrounded.png"></a></div>
+			
+			<div id="meanRainfall"><a href="http://www.worldclim.org/" title="This layer depicts the mean or average annual rainfall in millimeters of rain per year" target="_blank"><img src="images/precipitationlegendrounded.png"></a></div>	
+			
+			<div id="upcomingRain"><a href="http://www.hpc.ncep.noaa.gov/html/fam2.shtml#qpf" title="Quantitative Precipitation Forecasts, or QPFs, depict the amount of liquid precipitation expected to fall in a defined period of time.  In this case, the next 24 hours." target="_blank"><img src="images/futureprecipitationlegendrounded.png"></a></div>
+		</div>
+	
+	<div class="modal-showResults">
+	<img src="images/save-the-rain-text.png">
+
+			<a class="modal-showResults-close-profile" href="#"  onclick="findAddress();"title="Click here to start over.">
+			<img alt="Close profile window" src="images/btnCloseBlue.png" />
+		</a>
+		<div id="resultsDescription">
+			<span style="font-size:14px;">Rainwater harvesting is the accumulation and deposition of rainwater for reuse before it reaches the aquifer. Uses include water for gardens/lawns, flushing toilets, washing cars, etc. The graph below illustrates the potential practical impacts saving your rain could have.
+			
+			
+			
+			
+			</span>
+		<div style="height:10px;"></div>
+		
+			<div id="chartdiv" ></div>
+			<div id="chartdiv2"></div>
+			<div id="chartdiv3"></div>
+			<div id="chartdiv4"></div>	
+		
+		<span id="resultsSummary" style="font-size:14px;"></span>
+		</div>
+		
+	</div>
+	<div class="modal-showInstructions">
+		<a id="modal-showInstructions-close-profile" class="modal-close-profile" href="#"  "title="Click to close">
+			<img alt="Close profile window" src="images/btnCloseBlue.png" />
+		</a>
+		
+		<iframe src="//player.vimeo.com/video/97136702" width="560" height="315" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe> 
+
+	</div>
+
+	<div id="map" >
+
+	
+	</div>
+	
+	
+
+</body>
+<script>
+function init(){
+	try {
+
+document.createElement("canvas").getContext("2d");
+
+
+
+} catch (e) {
+
+alert("Sorry, this application uses the latest web technologies, including HTML5, which is not supported in your browser.  Please download Google Chrome, Safari, Firefox or Internet Explorer 9 and try again.");
+window.location = "http://www.google.de/chrome/?hl=en";
+
+}
+	
+		
+	geocoder = new google.maps.Geocoder();
+	
+    var myOptions = {
+          center: new google.maps.LatLng(37.0625,-95.677068),
+          zoom: 4,
+	      zoomControl: false,
+		  panControl: false,	
+		  maxZoom: 23,
+		  minZoom: 3, 
+		  disableDoubleClickZoom: true,
+		  streetViewControl: false,
+		  mapTypeControl: false,
+		  mapTypeId: google.maps.MapTypeId.SATELLITE
+	};
+  
+    map = new google.maps.Map(document.getElementById("map"), myOptions);
+    
+	  
+	  map.setTilt(0);
+	  map.setOptions({draggableCursor:'pointer'});
+	 
+	  map.setMapTypeId('arcgis');
+
+
+
+
+
+	poly = new google.maps.Polygon({
+      strokeWeight: 3,
+      fillColor: '#0099ff'
+    });
+    poly.setMap(map);
+    poly.setPaths(new google.maps.MVCArray([path]));
+	
+	
+ 
+	
+	var homeControlDiv = document.createElement('DIV');
+	var homeControl = new HomeControl(homeControlDiv, map);
+    homeControlDiv.index = 1;
+    map.controls[google.maps.ControlPosition.TOP_LEFT].push(homeControlDiv);
+    
+      var logoControlDiv = document.createElement('DIV');
+	var logoControl = new LogoControl(logoControlDiv, map);
+    logoControlDiv.index = 1;
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(logoControlDiv);
+    
+	google.maps.event.addListener(map, 'zoom_changed', function() {
+
+         var currentZoomLevel = map.getZoom();
+		 if (currentZoomLevel >= 12)
+		 {
+		 map.setMapTypeId('ArcGIS Imagery');
+		 }else{
+		 map.setMapTypeId('arcgis');
+		 }
+   });
+
+	google.maps.event.addListener(map, "click", leftClick);
+   
+    var url = 'http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer';
+    var agsType = new  gmaps.ags.MapType(url,{name:'ArcGIS'});
+    map.mapTypes.set('arcgis', agsType);
+    //map.setMapTypeId('arcgis');
+    
+
+
+   
+	
+
+    
+    
+    var urlImagery = 'http://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer';
+    var agsImageryType = new  gmaps.ags.MapType(urlImagery,{name:'ArcGIS Imagery'});
+    map.mapTypes.set('ArcGIS Imagery', agsImageryType);
+    //map.setMapTypeId('arcgis');
+	
+	jQuery(function() {
+		var COOKIE_NAME = 'splash-page-cookie';
+		$go = jQuery.cookie(COOKIE_NAME);
+		if ($go == null) {
+			jQuery.cookie(COOKIE_NAME, 'test', { path: '/', expires: 6 });
+			openBrowse();
+		}
+		else {
+		}
+	});
+	
+	
+	
+startRain();	
+	
+// 0099ff
+}  //end brace for the init function
+</script>
+</html>
