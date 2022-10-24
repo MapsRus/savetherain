@@ -312,7 +312,7 @@ function LogoControl(controlDiv, map){
   controlDiv.appendChild(logoUI2);
   
 	var controlText = document.createElement('DIV');
-  controlText.style.backgroundImage = "url('images/esrilogo.png')"; 
+  controlText.style.backgroundImage = "url('images/googlelogo.png')"; 
   controlText.style.width = '65px';
   controlText.style.height = '36px';
   logoUI2.appendChild(controlText);
@@ -446,7 +446,7 @@ function HomeControl(controlDiv, map) {
   });
 
   google.maps.event.addDomListener(controlUI2, 'click', function() {
-  map.setMapTypeId('arcgis');
+  map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
   map.setCenter(centeroftheWorld)
   map.setZoom(3);
   });
@@ -1064,7 +1064,62 @@ window.location = "http://www.google.de/chrome/?hl=en";
 
 }
 	
-		
+	     var myStyle = [
+    {
+        "featureType": "all",
+        "elementType": "all",
+        "stylers": [
+            {
+                "hue": "#008eff"
+            }
+        ]
+    },
+    {
+        "featureType": "poi",
+        "elementType": "all",
+        "stylers": [
+            {
+                "visibility": "off"
+            }
+        ]
+    },
+    {
+        "featureType": "road",
+        "elementType": "all",
+        "stylers": [
+            {
+                "saturation": "0"
+            },
+            {
+                "lightness": "0"
+            }
+        ]
+    },
+    {
+        "featureType": "transit",
+        "elementType": "all",
+        "stylers": [
+            {
+                "visibility": "off"
+            }
+        ]
+    },
+    {
+        "featureType": "water",
+        "elementType": "all",
+        "stylers": [
+            {
+                "visibility": "simplified"
+            },
+            {
+                "saturation": "-60"
+            },
+            {
+                "lightness": "-20"
+            }
+        ]
+    }
+]
 	geocoder = new google.maps.Geocoder();
 	
     var myOptions = {
@@ -1077,7 +1132,15 @@ window.location = "http://www.google.de/chrome/?hl=en";
 		  disableDoubleClickZoom: true,
 		  streetViewControl: false,
 		  mapTypeControl: false,
-		  mapTypeId: google.maps.MapTypeId.SATELLITE
+		 
+		  //mapId: "8e0a97af9386fef"
+		  
+		  
+		  mapTypeIds: ['mystyle', google.maps.MapTypeId.ROADMAP, google.maps.MapTypeId.TERRAIN],
+		  mapTypeId: 'mystyle'
+		  
+       
+		  //mapTypeId: google.maps.MapTypeId.SATELLITE
 	};
   
     map = new google.maps.Map(document.getElementById("map"), myOptions);
@@ -1085,8 +1148,10 @@ window.location = "http://www.google.de/chrome/?hl=en";
 	  
 	  map.setTilt(0);
 	  map.setOptions({draggableCursor:'pointer'});
+	  
+	  map.mapTypes.set('mystyle', new google.maps.StyledMapType(myStyle, { name: 'My Style' }));
 	 
-	  map.setMapTypeId('arcgis');
+	  //map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
 
 
 
@@ -1115,26 +1180,25 @@ window.location = "http://www.google.de/chrome/?hl=en";
 	google.maps.event.addListener(map, 'zoom_changed', function() {
 
          var currentZoomLevel = map.getZoom();
-		 if (currentZoomLevel >= 12)
+		 if (currentZoomLevel >= 15)
 		 {
-		 map.setMapTypeId('ArcGIS Imagery');
+	
+		map.setMapTypeId(google.maps.MapTypeId.SATELLITE);
+	// map.setMapTypeId('ArcGIS Imagery');
 		 }else{
-		 map.setMapTypeId('arcgis');
+		 map.setMapTypeId('mystyle');
+		 //map.setMapTypeId('arcgis');
 		 }
    });
 
 	google.maps.event.addListener(map, "click", leftClick);
+	
+	 
    
     var url = 'http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer';
     var agsType = new  gmaps.ags.MapType(url,{name:'ArcGIS'});
     map.mapTypes.set('arcgis', agsType);
     //map.setMapTypeId('arcgis');
-    
-
-
-   
-	
-
     
     
     var urlImagery = 'http://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer';
