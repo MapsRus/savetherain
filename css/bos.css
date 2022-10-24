@@ -1,0 +1,11 @@
+﻿html, body{
+
+font-family: 'Open Sans', sans-serif;
+}
+
+
+.barsofstuff-bar { font-size: 12px; padding: 1px; }
+.barsofstuff-title { font-size: 14px; font-weight: bold; text-align: center; }
+.barsofstuff-label { font-size: 12px; text-align: right;}
+.barsofstuff-error {font-size: 12px; color: red; }
+.barsofstuff-barhi { font-size: 12px; padding: 0px; background-color: #e5ecf9; border: 1px solid black; }
