@@ -13,7 +13,7 @@
 <link href="css/bos.css" rel="stylesheet" type="text/css" >
 <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600' rel='stylesheet' type='text/css'>
   
-<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC1FwTuerZcfQ0P5mLKMuTnVN7QJGvNcco&sensor=true&libraries=geometry&libraries=adsense&v=3.10"></script> 							    
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC1FwTuerZcfQ0P5mLKMuTnVN7QJGvNcco&sensor=true&libraries=geometry&libraries=places"></script> 							    
 <script type="text/javascript" src="js/jwaterdroplets.js"></script>  
 <script type='text/javascript' src='js/wax.g.min.js' ></script>
 <script type="text/javascript" src="js/bos.js"></script>
@@ -25,7 +25,10 @@
 
 
 <script type="text/javascript">
-  
+  	function clearDefault(el) {
+	alert("here");
+	if (el.defaultValue == el.value) el.value = ""
+}
 google.load("visualization", "1");
       google.setOnLoadCallback(drawChart);
       var chart;
@@ -970,7 +973,7 @@ function clearOverlays() {
 			<span style="font-size:14px;">Type in an address below, or just use the map controls to zoom.</span>
 			
 				<div style="padding-top:8px;  line-height:90% ">
-					<input id="address" style="margin-bottom:8px;" type="text" style="" class="rounded" ></input>
+					<input id="address" style="margin-bottom:8px;" type="text" style="" class="rounded" onfocus="this.value=''"></input>
 					<a class="button"  style="margin-bottom:8px;" id="clickAddress" href="#" onclick="showAddress()">GO</a><br>
 					<span style="font-size:14px;">Suggestions? 
 						<a href="javascript:QuickZoom('Googleplex')">Googleplex	</a> |
@@ -1217,11 +1220,17 @@ window.location = "http://www.google.de/chrome/?hl=en";
 		}
 	});
 	
+	var address = document.getElementById("address");
+	var autocomplete = new google.maps.places.Autocomplete(address);
 	
+
 	
 startRain();	
 	
 // 0099ff
 }  //end brace for the init function
+
+
+
 </script>
 </html>
