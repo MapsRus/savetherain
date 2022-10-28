@@ -41,7 +41,7 @@ img[src^="http://mt1.googleapis.com/"]{
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
 	
-	z-index: 500000;
+	z-index: 1000;
 	background-image: url('../images/splash-background-transparent75.png') ;
 	background-repeat:no-repeat;
 	
@@ -188,7 +188,7 @@ z-index: 99999;
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
 	
-	z-index: 500000;
+	z-index: 1000;
 	background-image: url('../images/searchbackground2.png') ;
 	background-repeat:no-repeat;
 }
@@ -274,7 +274,7 @@ display: none;
 top:170px;
 left:110px;
 position:absolute;
-z-index: 99999;
+z-index: 1000;
 height: 215px;
 background: rgba(190,224,223,1);
 background-image: url('../images/pencil.png') ;
